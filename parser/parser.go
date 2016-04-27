@@ -162,11 +162,17 @@ func (parser *Parser) ParseDeclarations() ([]*css.Declaration, error) {
 // ParseDeclaration parses a declaration
 func (parser *Parser) ParseDeclaration() (*css.Declaration, error) {
 	result := css.NewDeclaration()
-	curValue := ""
+	var (
+		curColumn int    = 0
+		curLine   int    = 0
+		curValue  string = ""
+	)
 
 	for parser.tokenParsable() {
 		if parser.tokenChar(":") {
 			result.Property = strings.TrimSpace(curValue)
+			result.Column = curColumn
+			result.Line = curLine
 			curValue = ""
 
 			parser.shiftToken()
@@ -192,6 +198,8 @@ func (parser *Parser) ParseDeclaration() (*css.Declaration, error) {
 		} else {
 			token := parser.shiftToken()
 			curValue += token.Value
+			curColumn = token.Column
+			curLine = token.Line
 		}
 	}
 

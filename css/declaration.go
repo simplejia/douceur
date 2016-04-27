@@ -7,6 +7,8 @@ type Declaration struct {
 	Property  string
 	Value     string
 	Important bool
+	Column    int
+	Line      int
 }
 
 // NewDeclaration instanciates a new Declaration
