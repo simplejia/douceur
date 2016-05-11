@@ -23,6 +23,13 @@ var atRulesWithRulesBlock = []string{
 	"@document", "@font-feature-values", "@keyframes", "@media", "@supports",
 }
 
+// Selector represents a parsed CSS selector.
+type Selector struct {
+	Value  string
+	Line   int
+	Column int
+}
+
 // Rule represents a parsed CSS rule
 type Rule struct {
 	Kind RuleKind
@@ -34,7 +41,7 @@ type Rule struct {
 	Prelude string
 
 	// Qualified Rule selectors parsed from prelude
-	Selectors []string
+	Selectors []*Selector
 
 	// Style properties
 	Declarations []*Declaration
@@ -93,7 +100,9 @@ func (rule *Rule) Equal(other *Rule) bool {
 	}
 
 	for i, sel := range rule.Selectors {
-		if sel != other.Selectors[i] {
+		if (sel.Value != other.Selectors[i].Value) ||
+			(sel.Line != other.Selectors[i].Line) ||
+			(sel.Column != other.Selectors[i].Column) {
 			return false
 		}
 	}
@@ -130,7 +139,7 @@ func (rule *Rule) Diff(other *Rule) []string {
 	}
 
 	if len(rule.Selectors) != len(other.Selectors) {
-		result = append(result, fmt.Sprintf("Selectors: %v | %v", strings.Join(rule.Selectors, ", "), strings.Join(other.Selectors, ", ")))
+		result = append(result, fmt.Sprintf("Selectors: %v | %v", strings.Join(rule.Sel(), ", "), strings.Join(other.Sel(), ", ")))
 	} else {
 		for i, sel := range rule.Selectors {
 			if sel != other.Selectors[i] {
@@ -168,7 +177,7 @@ func (rule *Rule) String() string {
 	result := ""
 
 	if rule.Kind == QualifiedRule {
-		for i, sel := range rule.Selectors {
+		for i, sel := range rule.Sel() {
 			if i != 0 {
 				result += ", "
 			}
@@ -227,4 +236,12 @@ func (rule *Rule) indentEndBlock() string {
 	}
 
 	return result
+}
+
+func (rule *Rule) Sel() []string {
+	selectors := []string{}
+	for _, s := range rule.Selectors {
+		selectors = append(selectors, s.Value)
+	}
+	return selectors
 }

@@ -43,9 +43,15 @@ p > a {
 }`
 
 	expectedRule := &css.Rule{
-		Kind:      css.QualifiedRule,
-		Prelude:   "p > a",
-		Selectors: []string{"p > a"},
+		Kind:    css.QualifiedRule,
+		Prelude: "p > a",
+		Selectors: []*css.Selector{
+			&css.Selector{
+				Value:  "p > a",
+				Line:   2,
+				Column: 1,
+			},
+		},
 		Declarations: []*css.Declaration{
 			{
 				Property: "color",
@@ -80,9 +86,15 @@ p > a {
 }`
 
 	expectedRule := &css.Rule{
-		Kind:      css.QualifiedRule,
-		Prelude:   "p > a",
-		Selectors: []string{"p > a"},
+		Kind:    css.QualifiedRule,
+		Prelude: "p > a",
+		Selectors: []*css.Selector{
+			&css.Selector{
+				Value:  "p > a",
+				Line:   2,
+				Column: 1,
+			},
+		},
 		Declarations: []*css.Declaration{
 			{
 				Property:  "color",
@@ -128,9 +140,25 @@ body,
 }`
 
 	expectedRule1 := &css.Rule{
-		Kind:      css.QualifiedRule,
-		Prelude:   "table, tr, td",
-		Selectors: []string{"table", "tr", "td"},
+		Kind:    css.QualifiedRule,
+		Prelude: "table, tr, td",
+		Selectors: []*css.Selector{
+			&css.Selector{
+				Value:  "table",
+				Line:   1,
+				Column: 1,
+			},
+			&css.Selector{
+				Value:  "tr",
+				Line:   1,
+				Column: 6,
+			},
+			&css.Selector{
+				Value:  "td",
+				Line:   1,
+				Column: 7,
+			},
+		},
 		Declarations: []*css.Declaration{
 			{
 				Property: "padding",
@@ -144,7 +172,29 @@ body,
 		Prelude: `body,
   h1,   h2,
     h3`,
-		Selectors: []string{"body", "h1", "h2", "h3"},
+		Selectors: []*css.Selector{
+			&css.Selector{
+				Value:  "body",
+				Line:   5,
+				Column: 1,
+			},
+			&css.Selector{
+				Value:  "h1",
+				Line:   5,
+				Column: 5,
+			},
+			&css.Selector{
+				Value:  "h2",
+				Line:   5,
+				Column: 6,
+			},
+			&css.Selector{
+				Value:  "h3",
+				Line:   6,
+				Column: 3,
+			},
+		},
+
 		Declarations: []*css.Declaration{
 			{
 				Property: "color",
@@ -248,9 +298,15 @@ func TestAtRuleDocument(t *testing.T) {
                regexp("https:.*")`,
 		Rules: []*css.Rule{
 			{
-				Kind:      css.QualifiedRule,
-				Prelude:   "body",
-				Selectors: []string{"body"},
+				Kind:    css.QualifiedRule,
+				Prelude: "body",
+				Selectors: []*css.Selector{
+					&css.Selector{
+						Value:  "body",
+						Line:   14,
+						Column: 3,
+					},
+				},
 				Declarations: []*css.Declaration{
 					{
 						Property: "color",
@@ -394,9 +450,15 @@ func TestAtRuleKeyframes(t *testing.T) {
 		Prelude: "identifier",
 		Rules: []*css.Rule{
 			{
-				Kind:      css.QualifiedRule,
-				Prelude:   "0%",
-				Selectors: []string{"0%"},
+				Kind:    css.QualifiedRule,
+				Prelude: "0%",
+				Selectors: []*css.Selector{
+					&css.Selector{
+						Value:  "0%",
+						Line:   2,
+						Column: 3,
+					},
+				},
 				Declarations: []*css.Declaration{
 					{
 						Property: "top",
@@ -409,9 +471,15 @@ func TestAtRuleKeyframes(t *testing.T) {
 				},
 			},
 			{
-				Kind:      css.QualifiedRule,
-				Prelude:   "100%",
-				Selectors: []string{"100%"},
+				Kind:    css.QualifiedRule,
+				Prelude: "100%",
+				Selectors: []*css.Selector{
+					&css.Selector{
+						Value:  "100%",
+						Line:   3,
+						Column: 3,
+					},
+				},
 				Declarations: []*css.Declaration{
 					{
 						Property: "top",
@@ -455,9 +523,15 @@ func TestAtRuleMedia(t *testing.T) {
 		Prelude: "screen, print",
 		Rules: []*css.Rule{
 			{
-				Kind:      css.QualifiedRule,
-				Prelude:   "body",
-				Selectors: []string{"body"},
+				Kind:    css.QualifiedRule,
+				Prelude: "body",
+				Selectors: []*css.Selector{
+					&css.Selector{
+						Value:  "body",
+						Line:   2,
+						Column: 3,
+					},
+				},
 				Declarations: []*css.Declaration{
 					{
 						Property: "line-height",
@@ -545,9 +619,15 @@ func TestAtRuleSupports(t *testing.T) {
 				Name: "@keyframes",
 				Rules: []*css.Rule{
 					{
-						Kind:      css.QualifiedRule,
-						Prelude:   "0%",
-						Selectors: []string{"0%"},
+						Kind:    css.QualifiedRule,
+						Prelude: "0%",
+						Selectors: []*css.Selector{
+							&css.Selector{
+								Value:  "0%",
+								Line:   4,
+								Column: 7,
+							},
+						},
 						Declarations: []*css.Declaration{
 							{
 								Property: "top",
@@ -560,9 +640,15 @@ func TestAtRuleSupports(t *testing.T) {
 						},
 					},
 					{
-						Kind:      css.QualifiedRule,
-						Prelude:   "100%",
-						Selectors: []string{"100%"},
+						Kind:    css.QualifiedRule,
+						Prelude: "100%",
+						Selectors: []*css.Selector{
+							&css.Selector{
+								Value:  "100%",
+								Line:   5,
+								Column: 7,
+							},
+						},
 						Declarations: []*css.Declaration{
 							{
 								Property: "top",

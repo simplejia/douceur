@@ -141,8 +141,8 @@ func (inliner *Inliner) collectElementsAndRules() {
 // Handles parsed qualified rule
 func (inliner *Inliner) handleQualifiedRule(rule *css.Rule) {
 	for _, selector := range rule.Selectors {
-		if Inlinable(selector) {
-			inliner.doc.Find(selector).Each(func(i int, s *goquery.Selection) {
+		if Inlinable(selector.Value) {
+			inliner.doc.Find(selector.Value).Each(func(i int, s *goquery.Selection) {
 				// get marker
 				eltMarker, exists := s.Attr(eltMarkerAttr)
 				if !exists {
@@ -156,11 +156,11 @@ func (inliner *Inliner) handleQualifiedRule(rule *css.Rule) {
 				}
 
 				// add style rule for element
-				inliner.elements[eltMarker].addStyleRule(NewStyleRule(selector, rule.Declarations))
+				inliner.elements[eltMarker].addStyleRule(NewStyleRule(selector.Value, rule.Declarations))
 			})
 		} else {
 			// Keep it 'as is'
-			inliner.rawRules = append(inliner.rawRules, NewStyleRule(selector, rule.Declarations))
+			inliner.rawRules = append(inliner.rawRules, NewStyleRule(selector.Value, rule.Declarations))
 		}
 	}
 }

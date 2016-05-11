@@ -245,7 +245,7 @@ func (parser *Parser) parseAtRule() (*css.Rule, error) {
 			break
 		} else {
 			// parse prelude
-			prelude, err := parser.parsePrelude()
+			prelude, err, _ := parser.parsePrelude()
 			if err != nil {
 				return result, err
 			}
@@ -262,6 +262,7 @@ func (parser *Parser) parseAtRule() (*css.Rule, error) {
 // Parse a Qualified Rule
 func (parser *Parser) parseQualifiedRule() (*css.Rule, error) {
 	result := css.NewRule(css.QualifiedRule)
+	preludeTokens := []scanner.Token{}
 
 	for parser.tokenParsable() {
 		if parser.tokenChar("{") {
@@ -282,18 +283,25 @@ func (parser *Parser) parseQualifiedRule() (*css.Rule, error) {
 			break
 		} else {
 			// parse prelude
-			prelude, err := parser.parsePrelude()
+			prelude, err, tokens := parser.parsePrelude()
 			if err != nil {
 				return result, err
 			}
 
 			result.Prelude = prelude
+			preludeTokens = tokens
 		}
 	}
 
-	result.Selectors = strings.Split(result.Prelude, ",")
-	for i, sel := range result.Selectors {
-		result.Selectors[i] = strings.TrimSpace(sel)
+	for i, s := range strings.Split(result.Prelude, ",") {
+		result.Selectors = append(result.Selectors, &css.Selector{
+			Value:  s,
+			Line:   preludeTokens[i].Line,
+			Column: preludeTokens[i].Column,
+		})
+	}
+	for i, sel := range result.Sel() {
+		result.Selectors[i].Value = strings.TrimSpace(sel)
 	}
 
 	// log.Printf("[parsed] Rule: %s", result.String())
@@ -302,19 +310,21 @@ func (parser *Parser) parseQualifiedRule() (*css.Rule, error) {
 }
 
 // Parse Rule prelude
-func (parser *Parser) parsePrelude() (string, error) {
+func (parser *Parser) parsePrelude() (string, error, []scanner.Token) {
 	result := ""
+	tokens := []scanner.Token{}
 
 	for parser.tokenParsable() && !parser.tokenEndOfPrelude() {
 		token := parser.shiftToken()
 		result += token.Value
+		tokens = append(tokens, *token)
 	}
 
 	result = strings.TrimSpace(result)
 
 	// log.Printf("[parsed] prelude: %s", result)
 
-	return result, parser.err()
+	return result, parser.err(), tokens
 }
 
 // Parse BOM
