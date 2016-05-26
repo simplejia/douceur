@@ -1,8 +1,8 @@
-# douceur [![Build Status](https://secure.travis-ci.org/aymerick/douceur.svg?branch=master)](http://travis-ci.org/aymerick/douceur)
+# douceur [![Build Status](https://api.travis-ci.org/chris-ramon/douceur.svg?branch=master)](https://travis-ci.org/chris-ramon/douceur)
 
 A simple CSS parser and inliner in Golang.
 
-![Douceur Logo](https://github.com/aymerick/douceur/blob/master/douceur.png?raw=true "Douceur")
+![Douceur Logo](https://github.com/chris-ramon/douceur/blob/master/douceur.png?raw=true "Douceur")
 
 Parser is vaguely inspired by [CSS Syntax Module Level 3](http://www.w3.org/TR/css3-syntax) and [corresponding JS parser](https://github.com/tabatkins/parse-css).
 
@@ -44,7 +44,7 @@ The `bgcolor` attribute is inserted, in addition to the inlined `background-colo
 
 Install tool:
 
-    $ go install github.com/aymerick/douceur
+    $ go install github.com/chris-ramon/douceur
 
 Parse a CSS file and display result:
 
@@ -59,7 +59,7 @@ Inline CSS in an HTML document and display result:
 
 Fetch package:
 
-    $ go get github.com/aymerick/douceur
+    $ go get github.com/chris-ramon/douceur
 
 
 ### Parse CSS
@@ -70,7 +70,7 @@ package main
 import (
     "fmt"
 
-    "github.com/aymerick/douceur/parser"
+    "github.com/chris-ramon/douceur/parser"
 )
 
 func main() {
@@ -114,7 +114,7 @@ package main
 import (
     "fmt"
 
-    "github.com/aymerick/douceur/inliner"
+    "github.com/chris-ramon/douceur/inliner"
 )
 
 func main() {
