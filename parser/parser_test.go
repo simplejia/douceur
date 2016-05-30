@@ -151,12 +151,12 @@ body,
 			&css.Selector{
 				Value:  "tr",
 				Line:   1,
-				Column: 6,
+				Column: 8,
 			},
 			&css.Selector{
 				Value:  "td",
 				Line:   1,
-				Column: 7,
+				Column: 12,
 			},
 		},
 		Declarations: []*css.Declaration{
@@ -180,20 +180,21 @@ body,
 			},
 			&css.Selector{
 				Value:  "h1",
-				Line:   5,
-				Column: 5,
-			},
-			&css.Selector{
-				Value:  "h2",
-				Line:   5,
-				Column: 6,
-			},
-			&css.Selector{
-				Value:  "h3",
 				Line:   6,
 				Column: 3,
 			},
+			&css.Selector{
+				Value:  "h2",
+				Line:   6,
+				Column: 9,
+			},
+			&css.Selector{
+				Value:  "h3",
+				Line:   7,
+				Column: 5,
+			},
 		},
+
 
 		Declarations: []*css.Declaration{
 			{
@@ -714,4 +715,61 @@ func TestParseDeclarations(t *testing.T) {
 			t.Fatal("Failed to parse Declarations: ", decl.String(), expectedOutput[i].String())
 		}
 	}
+}
+
+func TestMultipleDeclarations(t *testing.T) {
+	input := `.btn:focus,
+.btn:active:focus,
+.btn.active:focus,
+.btn.focus,
+.btn:active.focus,
+.btn.active.focus {
+}`
+	expectedRule := &css.Rule{
+		Kind:    css.QualifiedRule,
+		Prelude: `.btn:focus,
+.btn:active:focus,
+.btn.active:focus,
+.btn.focus,
+.btn:active.focus,
+.btn.active.focus`,
+		Selectors: []*css.Selector{
+			&css.Selector{
+				Value:  ".btn:focus",
+				Line:   1,
+				Column: 1,
+			},
+			&css.Selector{
+				Value:  ".btn:active:focus",
+				Line:   2,
+				Column: 1,
+			},
+			&css.Selector{
+				Value:  ".btn.active:focus",
+				Line:   3,
+				Column: 1,
+			},
+			&css.Selector{
+				Value:  ".btn.focus",
+				Line:   4,
+				Column: 1,
+			},
+			&css.Selector{
+				Value:  ".btn:active.focus",
+				Line:   5,
+				Column: 1,
+			},
+			&css.Selector{
+				Value:  ".btn.active.focus",
+				Line:   6,
+				Column: 1,
+			},
+		},
+		Declarations: []*css.Declaration{},
+	}
+
+	stylesheet := MustParse(t, input, 1)
+	rule := stylesheet.Rules[0]
+
+	MustEqualRule(t, rule, expectedRule)
 }

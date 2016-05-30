@@ -30,6 +30,10 @@ type Selector struct {
 	Column int
 }
 
+func (selector Selector) String() string {
+	return fmt.Sprintf("Selector: %s (%d, %d)", selector.Value, selector.Line, selector.Column)
+}
+
 // Rule represents a parsed CSS rule
 type Rule struct {
 	Kind RuleKind

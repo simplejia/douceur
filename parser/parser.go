@@ -293,16 +293,45 @@ func (parser *Parser) parseQualifiedRule() (*css.Rule, error) {
 		}
 	}
 
-	for i, s := range strings.Split(result.Prelude, ",") {
-		result.Selectors = append(result.Selectors, &css.Selector{
-			Value:  s,
-			Line:   preludeTokens[i].Line,
-			Column: preludeTokens[i].Column,
-		})
+	selectorValue := ""
+	selectorStart := true
+	var line int
+	var col int
+
+	for _, tok := range preludeTokens {
+		switch {
+		case tok.Value == ",":
+			{
+				result.Selectors = append(result.Selectors, &css.Selector{
+					Value:  strings.TrimSpace(selectorValue),
+					Line:   line,
+					Column: col,
+				})
+				selectorStart = true
+				selectorValue = ""
+			}
+		case tok.Type != scanner.TokenS:
+			{
+				selectorValue += tok.Value
+				if selectorStart {
+					line = tok.Line
+					col = tok.Column
+					selectorStart = false
+				}
+			}
+		case tok.Type == scanner.TokenS:
+			{
+				if !selectorStart {
+					selectorValue += tok.Value
+				}
+			}
+		}
 	}
-	for i, sel := range result.Sel() {
-		result.Selectors[i].Value = strings.TrimSpace(sel)
-	}
+	result.Selectors = append(result.Selectors, &css.Selector{
+		Value:  strings.TrimSpace(selectorValue),
+		Line:   line,
+		Column: col,
+	})
 
 	// log.Printf("[parsed] Rule: %s", result.String())
 
