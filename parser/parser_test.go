@@ -11,11 +11,11 @@ import (
 func MustParse(t *testing.T, txt string, nbRules int) *css.Stylesheet {
 	stylesheet, err := Parse(txt)
 	if err != nil {
-		t.Fatal("Failed to parse css", err, txt)
+		t.Fatal("Failed to parse CSS", err, txt)
 	}
 
 	if len(stylesheet.Rules) != nbRules {
-		t.Fatal("Failed to parse Qualified Rules", txt)
+		t.Fatal(fmt.Sprintf("Failed to parse CSS \"%s\", expected %d rules but got %d", txt, nbRules, len(stylesheet.Rules)))
 	}
 
 	return stylesheet
@@ -851,6 +851,28 @@ func TestComments(t *testing.T) {
 				Column:   14,
 			},
 		},
+	}
+
+	stylesheet := MustParse(t, input, 1)
+	rule := stylesheet.Rules[0]
+
+	MustEqualRule(t, rule, expectedRule)
+}
+
+func TestInfiniteLoop(t *testing.T) {
+	input := "{;}"
+
+	expectedRule := &css.Rule{
+		Kind:    css.QualifiedRule,
+		Prelude: "",
+		Selectors: []*css.Selector{
+			{
+				Value:  "",
+				Line:   0,
+				Column: 0,
+			},
+		},
+		Declarations: []*css.Declaration{},
 	}
 
 	stylesheet := MustParse(t, input, 1)

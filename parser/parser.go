@@ -127,7 +127,6 @@ func (parser *Parser) ParseRule() (*css.Rule, error) {
 	if parser.tokenAtKeyword() {
 		return parser.parseAtRule()
 	}
-
 	return parser.parseQualifiedRule()
 }
 
@@ -284,6 +283,10 @@ func (parser *Parser) parseQualifiedRule() (*css.Rule, error) {
 
 			result.Declarations = declarations
 
+			// finished
+			break
+		} else if parser.tokenChar(";") {
+			parser.shiftToken()
 			// finished
 			break
 		} else {
