@@ -11,11 +11,11 @@ import (
 func MustParse(t *testing.T, txt string, nbRules int) *css.Stylesheet {
 	stylesheet, err := Parse(txt)
 	if err != nil {
-		t.Fatal("Failed to parse css", err, txt)
+		t.Fatal("Failed to parse CSS", err, txt)
 	}
 
 	if len(stylesheet.Rules) != nbRules {
-		t.Fatal("Failed to parse Qualified Rules", txt)
+		t.Fatal(fmt.Sprintf("Failed to parse CSS \"%s\", expected %d rules but got %d", txt, nbRules, len(stylesheet.Rules)))
 	}
 
 	return stylesheet
@@ -46,7 +46,7 @@ p > a {
 		Kind:    css.QualifiedRule,
 		Prelude: "p > a",
 		Selectors: []*css.Selector{
-			&css.Selector{
+			{
 				Value:  "p > a",
 				Line:   2,
 				Column: 1,
@@ -56,10 +56,14 @@ p > a {
 			{
 				Property: "color",
 				Value:    "blue",
+				Line:     3,
+				Column:   5,
 			},
 			{
 				Property: "text-decoration",
 				Value:    "underline",
+				Line:     4,
+				Column:   5,
 			},
 		},
 	}
@@ -89,7 +93,7 @@ p > a {
 		Kind:    css.QualifiedRule,
 		Prelude: "p > a",
 		Selectors: []*css.Selector{
-			&css.Selector{
+			{
 				Value:  "p > a",
 				Line:   2,
 				Column: 1,
@@ -100,16 +104,22 @@ p > a {
 				Property:  "color",
 				Value:     "blue",
 				Important: false,
+				Line:      3,
+				Column:    5,
 			},
 			{
 				Property:  "text-decoration",
 				Value:     "underline",
 				Important: true,
+				Line:      4,
+				Column:    5,
 			},
 			{
 				Property:  "font-weight",
 				Value:     "normal",
 				Important: true,
+				Line:      5,
+				Column:    5,
 			},
 		},
 	}
@@ -143,17 +153,17 @@ body,
 		Kind:    css.QualifiedRule,
 		Prelude: "table, tr, td",
 		Selectors: []*css.Selector{
-			&css.Selector{
+			{
 				Value:  "table",
 				Line:   1,
 				Column: 1,
 			},
-			&css.Selector{
+			{
 				Value:  "tr",
 				Line:   1,
 				Column: 8,
 			},
-			&css.Selector{
+			{
 				Value:  "td",
 				Line:   1,
 				Column: 12,
@@ -163,6 +173,8 @@ body,
 			{
 				Property: "padding",
 				Value:    "0",
+				Line:     2,
+				Column:   3,
 			},
 		},
 	}
@@ -173,33 +185,34 @@ body,
   h1,   h2,
     h3`,
 		Selectors: []*css.Selector{
-			&css.Selector{
+			{
 				Value:  "body",
 				Line:   5,
 				Column: 1,
 			},
-			&css.Selector{
+			{
 				Value:  "h1",
 				Line:   6,
 				Column: 3,
 			},
-			&css.Selector{
+			{
 				Value:  "h2",
 				Line:   6,
 				Column: 9,
 			},
-			&css.Selector{
+			{
 				Value:  "h3",
 				Line:   7,
 				Column: 5,
 			},
 		},
 
-
 		Declarations: []*css.Declaration{
 			{
 				Property: "color",
 				Value:    "#fff",
+				Line:     8,
+				Column:   3,
 			},
 		},
 	}
@@ -253,14 +266,20 @@ func TestAtRuleCounterStyle(t *testing.T) {
 			{
 				Property: "system",
 				Value:    "symbolic",
+				Line:     2,
+				Column:   3,
 			},
 			{
 				Property: "symbols",
 				Value:    "'*' ⁑ † ‡",
+				Line:     3,
+				Column:   3,
 			},
 			{
 				Property: "suffix",
 				Value:    "''",
+				Line:     4,
+				Column:   3,
 			},
 		},
 	}
@@ -302,7 +321,7 @@ func TestAtRuleDocument(t *testing.T) {
 				Kind:    css.QualifiedRule,
 				Prelude: "body",
 				Selectors: []*css.Selector{
-					&css.Selector{
+					{
 						Value:  "body",
 						Line:   14,
 						Column: 3,
@@ -312,10 +331,14 @@ func TestAtRuleDocument(t *testing.T) {
 					{
 						Property: "color",
 						Value:    "purple",
+						Line:     14,
+						Column:   10,
 					},
 					{
 						Property: "background",
 						Value:    "yellow",
+						Line:     14,
+						Column:   25,
 					},
 				},
 			},
@@ -356,16 +379,22 @@ func TestAtRuleFontFace(t *testing.T) {
 			{
 				Property: "font-family",
 				Value:    "MyHelvetica",
+				Line:     2,
+				Column:   3,
 			},
 			{
 				Property: "src",
 				Value: `local("Helvetica Neue Bold"),
        local("HelveticaNeue-Bold"),
        url(MgOpenModernaBold.ttf)`,
+				Line:   3,
+				Column: 3,
 			},
 			{
 				Property: "font-weight",
 				Value:    "bold",
+				Line:     6,
+				Column:   3,
 			},
 		},
 	}
@@ -396,6 +425,8 @@ func TestAtRuleFontFeatureValues(t *testing.T) {
 					{
 						Property: "nice-style",
 						Value:    "4",
+						Line:     3,
+						Column:   5,
 					},
 				},
 			},
@@ -454,7 +485,7 @@ func TestAtRuleKeyframes(t *testing.T) {
 				Kind:    css.QualifiedRule,
 				Prelude: "0%",
 				Selectors: []*css.Selector{
-					&css.Selector{
+					{
 						Value:  "0%",
 						Line:   2,
 						Column: 3,
@@ -464,10 +495,14 @@ func TestAtRuleKeyframes(t *testing.T) {
 					{
 						Property: "top",
 						Value:    "0",
+						Line:     2,
+						Column:   8,
 					},
 					{
 						Property: "left",
 						Value:    "0",
+						Line:     2,
+						Column:   16,
 					},
 				},
 			},
@@ -475,7 +510,7 @@ func TestAtRuleKeyframes(t *testing.T) {
 				Kind:    css.QualifiedRule,
 				Prelude: "100%",
 				Selectors: []*css.Selector{
-					&css.Selector{
+					{
 						Value:  "100%",
 						Line:   3,
 						Column: 3,
@@ -485,10 +520,14 @@ func TestAtRuleKeyframes(t *testing.T) {
 					{
 						Property: "top",
 						Value:    "100px",
+						Line:     3,
+						Column:   10,
 					},
 					{
 						Property: "left",
 						Value:    "100%",
+						Line:     3,
+						Column:   22,
 					},
 				},
 			},
@@ -527,7 +566,7 @@ func TestAtRuleMedia(t *testing.T) {
 				Kind:    css.QualifiedRule,
 				Prelude: "body",
 				Selectors: []*css.Selector{
-					&css.Selector{
+					{
 						Value:  "body",
 						Line:   2,
 						Column: 3,
@@ -537,6 +576,8 @@ func TestAtRuleMedia(t *testing.T) {
 					{
 						Property: "line-height",
 						Value:    "1.2",
+						Line:     2,
+						Column:   10,
 					},
 				},
 			},
@@ -586,10 +627,14 @@ func TestAtRulePage(t *testing.T) {
 			{
 				Property: "margin-left",
 				Value:    "4cm",
+				Line:     2,
+				Column:   3,
 			},
 			{
 				Property: "margin-right",
 				Value:    "3cm",
+				Line:     3,
+				Column:   3,
 			},
 		},
 	}
@@ -623,7 +668,7 @@ func TestAtRuleSupports(t *testing.T) {
 						Kind:    css.QualifiedRule,
 						Prelude: "0%",
 						Selectors: []*css.Selector{
-							&css.Selector{
+							{
 								Value:  "0%",
 								Line:   4,
 								Column: 7,
@@ -633,10 +678,14 @@ func TestAtRuleSupports(t *testing.T) {
 							{
 								Property: "top",
 								Value:    "0",
+								Line:     4,
+								Column:   12,
 							},
 							{
 								Property: "left",
 								Value:    "0",
+								Line:     4,
+								Column:   20,
 							},
 						},
 					},
@@ -644,7 +693,7 @@ func TestAtRuleSupports(t *testing.T) {
 						Kind:    css.QualifiedRule,
 						Prelude: "100%",
 						Selectors: []*css.Selector{
-							&css.Selector{
+							{
 								Value:  "100%",
 								Line:   5,
 								Column: 7,
@@ -654,10 +703,14 @@ func TestAtRuleSupports(t *testing.T) {
 							{
 								Property: "top",
 								Value:    "100px",
+								Line:     5,
+								Column:   14,
 							},
 							{
 								Property: "left",
 								Value:    "100%",
+								Line:     5,
+								Column:   26,
 							},
 						},
 					},
@@ -699,10 +752,14 @@ func TestParseDeclarations(t *testing.T) {
 		{
 			Property: "color",
 			Value:    "blue",
+			Line:     1,
+			Column:   1,
 		},
 		{
 			Property: "text-decoration",
 			Value:    "underline",
+			Line:     1,
+			Column:   14,
 		},
 	}
 
@@ -712,7 +769,7 @@ func TestParseDeclarations(t *testing.T) {
 
 	for i, decl := range declarations {
 		if !decl.Equal(expectedOutput[i]) {
-			t.Fatal("Failed to parse Declarations: ", decl.String(), expectedOutput[i].String())
+			t.Fatal("Failed to parse Declarations: ", decl.Str(true), expectedOutput[i].Str(true))
 		}
 	}
 }
@@ -726,7 +783,7 @@ func TestMultipleDeclarations(t *testing.T) {
 .btn.active.focus {
 }`
 	expectedRule := &css.Rule{
-		Kind:    css.QualifiedRule,
+		Kind: css.QualifiedRule,
 		Prelude: `.btn:focus,
 .btn:active:focus,
 .btn.active:focus,
@@ -734,35 +791,85 @@ func TestMultipleDeclarations(t *testing.T) {
 .btn:active.focus,
 .btn.active.focus`,
 		Selectors: []*css.Selector{
-			&css.Selector{
+			{
 				Value:  ".btn:focus",
 				Line:   1,
 				Column: 1,
 			},
-			&css.Selector{
+			{
 				Value:  ".btn:active:focus",
 				Line:   2,
 				Column: 1,
 			},
-			&css.Selector{
+			{
 				Value:  ".btn.active:focus",
 				Line:   3,
 				Column: 1,
 			},
-			&css.Selector{
+			{
 				Value:  ".btn.focus",
 				Line:   4,
 				Column: 1,
 			},
-			&css.Selector{
+			{
 				Value:  ".btn:active.focus",
 				Line:   5,
 				Column: 1,
 			},
-			&css.Selector{
+			{
 				Value:  ".btn.active.focus",
 				Line:   6,
 				Column: 1,
+			},
+		},
+		Declarations: []*css.Declaration{},
+	}
+
+	stylesheet := MustParse(t, input, 1)
+	rule := stylesheet.Rules[0]
+
+	MustEqualRule(t, rule, expectedRule)
+}
+
+func TestComments(t *testing.T) {
+	input := "td /* © */ { color /* © */: red; }"
+	expectedRule := &css.Rule{
+		Kind:    css.QualifiedRule,
+		Prelude: "td /* © */",
+		Selectors: []*css.Selector{
+			{
+				Value:  "td",
+				Line:   1,
+				Column: 1,
+			},
+		},
+		Declarations: []*css.Declaration{
+			{
+				Property: "color",
+				Value:    "red",
+				Line:     1,
+				Column:   14,
+			},
+		},
+	}
+
+	stylesheet := MustParse(t, input, 1)
+	rule := stylesheet.Rules[0]
+
+	MustEqualRule(t, rule, expectedRule)
+}
+
+func TestInfiniteLoop(t *testing.T) {
+	input := "{;}"
+
+	expectedRule := &css.Rule{
+		Kind:    css.QualifiedRule,
+		Prelude: "",
+		Selectors: []*css.Selector{
+			{
+				Value:  "",
+				Line:   0,
+				Column: 0,
 			},
 		},
 		Declarations: []*css.Declaration{},

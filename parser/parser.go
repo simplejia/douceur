@@ -127,7 +127,6 @@ func (parser *Parser) ParseRule() (*css.Rule, error) {
 	if parser.tokenAtKeyword() {
 		return parser.parseAtRule()
 	}
-
 	return parser.parseQualifiedRule()
 }
 
@@ -195,11 +194,16 @@ func (parser *Parser) ParseDeclaration() (*css.Declaration, error) {
 
 			// finished
 			break
-		} else {
+		} else if !parser.tokenIgnorable() {
 			token := parser.shiftToken()
 			curValue += token.Value
 			curColumn = token.Column
 			curLine = token.Line
+		} else {
+			token := parser.shiftToken()
+			if token.Type != scanner.TokenComment {
+				curValue += token.Value
+			}
 		}
 	}
 
@@ -281,6 +285,10 @@ func (parser *Parser) parseQualifiedRule() (*css.Rule, error) {
 
 			// finished
 			break
+		} else if parser.tokenChar(";") {
+			parser.shiftToken()
+			// finished
+			break
 		} else {
 			// parse prelude
 			prelude, err, tokens := parser.parsePrelude()
@@ -310,7 +318,7 @@ func (parser *Parser) parseQualifiedRule() (*css.Rule, error) {
 				selectorStart = true
 				selectorValue = ""
 			}
-		case tok.Type != scanner.TokenS:
+		case tok.Type != scanner.TokenS && tok.Type != scanner.TokenComment:
 			{
 				selectorValue += tok.Value
 				if selectorStart {
