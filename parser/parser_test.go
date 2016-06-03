@@ -861,22 +861,8 @@ func TestComments(t *testing.T) {
 
 func TestInfiniteLoop(t *testing.T) {
 	input := "{;}"
-
-	expectedRule := &css.Rule{
-		Kind:    css.QualifiedRule,
-		Prelude: "",
-		Selectors: []*css.Selector{
-			{
-				Value:  "",
-				Line:   0,
-				Column: 0,
-			},
-		},
-		Declarations: []*css.Declaration{},
+	_, err := Parse(input)
+	if err == nil {
+		t.Fatal("Expected an error got nil")
 	}
-
-	stylesheet := MustParse(t, input, 1)
-	rule := stylesheet.Rules[0]
-
-	MustEqualRule(t, rule, expectedRule)
 }
