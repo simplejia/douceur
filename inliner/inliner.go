@@ -2,6 +2,11 @@ package inliner
 
 import (
 	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+	"path"
 	"strconv"
 	"strings"
 
@@ -42,36 +47,77 @@ type Inliner struct {
 
 	// current element marker value
 	eltMarker int
+
+	// fetch external stylesheets, false default not fetch
+	fetchExternal bool
+
+	// proxy for fetching css file, only support http
+	proxy string
+
+	// base for parse relative path
+	base *url.URL
+}
+
+// InlineOption Inline option parameter
+type InlineOption struct {
+	// FetchExternal, whether fetch external css file
+	FetchExternal bool
+	// SourceURL provide the way to convert relative url to absolute url
+	SourceURL string
+	// Proxy when fetch external css file, we can use squid to accelate by cache.
+	Proxy string
+}
+
+// NewInlinerFromReader instanciates a new Inliner
+func NewInlinerFromReader(r io.Reader) (*Inliner, error) {
+	html, err := ioutil.ReadAll(r)
+	if err != nil {
+		return nil, err
+	}
+	inliner := &Inliner{
+		html:     string(html),
+		elements: make(map[string]*Element),
+	}
+	return inliner, nil
 }
 
 // NewInliner instanciates a new Inliner
 func NewInliner(html string) *Inliner {
-	return &Inliner{
+	inliner := &Inliner{
 		html:     html,
 		elements: make(map[string]*Element),
 	}
+	return inliner
 }
 
 // Inline inlines css into html document
 func Inline(html string) (string, error) {
-	result, err := NewInliner(html).Inline()
+	doc, err := NewInliner(html).Inline(nil)
 	if err != nil {
 		return "", err
 	}
 
-	return result, nil
+	newHTML, err := doc.Selection.Html()
+	if err != nil {
+		return "", err
+	}
+
+	return newHTML, nil
 }
 
 // Inline inlines CSS and returns HTML
-func (inliner *Inliner) Inline() (string, error) {
+func (inliner *Inliner) Inline(option *InlineOption) (*goquery.Document, error) {
 	// parse HTML document
+	if err := inliner.resolveOption(option); err != nil {
+		return nil, err
+	}
 	if err := inliner.parseHTML(); err != nil {
-		return "", err
+		return nil, err
 	}
 
 	// parse stylesheets
 	if err := inliner.parseStylesheets(); err != nil {
-		return "", err
+		return nil, err
 	}
 
 	// collect elements and style rules
@@ -79,14 +125,14 @@ func (inliner *Inliner) Inline() (string, error) {
 
 	// inline css
 	if err := inliner.inlineStyleRules(); err != nil {
-		return "", err
+		return nil, err
 	}
 
 	// insert raw stylesheet
 	inliner.insertRawStylesheet()
 
 	// generate HTML document
-	return inliner.genHTML()
+	return inliner.doc, nil
 }
 
 // Parses raw html
@@ -98,25 +144,26 @@ func (inliner *Inliner) parseHTML() error {
 
 	inliner.doc = doc
 
+	if inliner.fetchExternal {
+		inliner.fetchExternalStyle()
+	}
+
 	return nil
 }
 
 // Parses and removes stylesheets from HTML document
 func (inliner *Inliner) parseStylesheets() error {
 	var result error
-
 	inliner.doc.Find("style").EachWithBreak(func(i int, s *goquery.Selection) bool {
 		stylesheet, err := parser.Parse(s.Text())
 		if err != nil {
 			result = err
+			fmt.Println(s.Text())
 			return false
 		}
-
 		inliner.stylesheets = append(inliner.stylesheets, stylesheet)
-
 		// removes parsed stylesheet
 		s.Remove()
-
 		return true
 	})
 
@@ -222,6 +269,43 @@ func (inliner *Inliner) insertRawStylesheet() {
 	}
 }
 
+func (inliner *Inliner) fetchExternalStyle() (err error) {
+	proxyURL, err := url.Parse(inliner.proxy)
+	if err != nil {
+		return
+	}
+	httpClinet := http.Client{
+		Transport: &http.Transport{
+			Proxy: http.ProxyURL(proxyURL),
+		},
+	}
+
+	inliner.doc.Find("link").EachWithBreak(func(_ int, s *goquery.Selection) bool {
+		if rel, ok := s.Attr("rel"); ok && rel == "stylesheet" {
+			cssURL, ok := s.Attr("href")
+			if !ok || cssURL == "" {
+				return true
+			}
+			cssURL = toAbsoluteURI(cssURL, inliner.base)
+			resp, errTmp := httpClinet.Get(cssURL)
+			if err != nil {
+				err = errTmp
+				return false
+			}
+			defer resp.Body.Close()
+			style, errTmp := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				err = errTmp
+				return false
+			}
+			s.ReplaceWithHtml(fmt.Sprintf(`<style type="text/css"> %s </style>`, style))
+			return true
+		}
+		return true
+	})
+	return
+}
+
 // Generates HTML
 func (inliner *Inliner) genHTML() (string, error) {
 	return inliner.doc.Html()
@@ -240,4 +324,47 @@ func Inlinable(selector string) bool {
 	}
 
 	return true
+}
+
+func toAbsoluteURI(url string, base *url.URL) string {
+	if base == nil {
+		return url
+	}
+
+	if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
+		if strings.HasPrefix(url, "//") {
+			url = base.Scheme + ":" + url
+		} else if strings.HasPrefix(url, "/") {
+			url = base.Scheme + "://" + base.Host + url
+		} else if url != "" {
+			if base.Scheme != "" {
+				url = base.Scheme + "://" + base.Host + path.Join(base.Path, url)
+			} else {
+				url = base.Host + path.Join(base.Path, url)
+			}
+		}
+		return url
+	}
+
+	return url
+}
+
+func (inliner *Inliner) resolveOption(option *InlineOption) error {
+	if option == nil {
+		return nil
+	}
+
+	inliner.fetchExternal = option.FetchExternal
+	if option.FetchExternal && option.SourceURL != "" {
+		base, err := url.Parse(option.SourceURL)
+		if err != nil {
+			return err
+		}
+		inliner.base = base
+	}
+	if option.Proxy != "" {
+		inliner.proxy = option.Proxy
+	}
+
+	return nil
 }

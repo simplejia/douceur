@@ -75,12 +75,9 @@ func (parser *Parser) ParseStylesheet() (*css.Stylesheet, error) {
 func (parser *Parser) ParseRules() ([]*css.Rule, error) {
 	result := []*css.Rule{}
 
-	inBlock := false
 	if parser.tokenChar("{") {
 		// parsing a block of rules
-		inBlock = true
 		parser.embedLevel++
-
 		parser.shiftToken()
 	}
 
@@ -88,7 +85,7 @@ func (parser *Parser) ParseRules() ([]*css.Rule, error) {
 		if parser.tokenIgnorable() {
 			parser.shiftToken()
 		} else if parser.tokenChar("}") {
-			if !inBlock {
+			if parser.embedLevel <= 0 {
 				errMsg := fmt.Sprintf("Unexpected } character: %s", parser.nextToken().String())
 				return result, errors.New(errMsg)
 			}
