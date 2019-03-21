@@ -20,12 +20,26 @@ const (
 
 // At Rules than have Rules inside their block instead of Declarations
 var atRulesWithRulesBlock = []string{
-	"@document",
-	"@font-feature-values",
-	"@keyframes",
-	"@media",
-	"@supports",
-	"@-webkit-keyframes",
+	"@document", "@font-feature-values", "@keyframes", "@media", "@supports", "@-webkit-keyframes", "@-moz-keyframes", "@-o-keyframes",
+}
+
+// Selector represents a parsed CSS selector.
+type Selector struct {
+	Value  string
+	Line   int
+	Column int
+}
+
+func (selector Selector) String() string {
+	return selector.str(false)
+}
+
+func (selector Selector) str(diff bool) string {
+	if diff {
+		return fmt.Sprintf("Selector: %s (%d, %d)", selector.Value, selector.Line, selector.Column)
+	} else {
+		return selector.Value
+	}
 }
 
 // Rule represents a parsed CSS rule
