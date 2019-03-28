@@ -274,7 +274,7 @@ func (inliner *Inliner) fetchExternalStyle() (err error) {
 	if err != nil {
 		return
 	}
-	httpClinet := http.Client{
+	httpClient := http.Client{
 		Transport: &http.Transport{
 			Proxy: http.ProxyURL(proxyURL),
 		},
@@ -287,12 +287,14 @@ func (inliner *Inliner) fetchExternalStyle() (err error) {
 				return true
 			}
 			cssURL = toAbsoluteURI(cssURL, inliner.base)
-			resp, errTmp := httpClinet.Get(cssURL)
-			if err != nil {
+			resp, errTmp := httpClient.Get(cssURL)
+			if resp != nil {
+				defer resp.Body.Close()
+			}
+			if errTmp != nil {
 				err = errTmp
 				return false
 			}
-			defer resp.Body.Close()
 			style, errTmp := ioutil.ReadAll(resp.Body)
 			if err != nil {
 				err = errTmp
