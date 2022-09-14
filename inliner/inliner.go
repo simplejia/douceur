@@ -11,8 +11,8 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/czlhs/douceur/css"
-	"github.com/czlhs/douceur/parser"
+	"github.com/simplejia/douceur/css"
+	"github.com/simplejia/douceur/parser"
 	"golang.org/x/net/html"
 )
 
